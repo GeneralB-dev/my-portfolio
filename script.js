@@ -1,4 +1,17 @@
 document.addEventListener('DOMContentLoaded', function () {
+  var toggle = document.querySelector('.nav-toggle');
+  var mobileMenu = document.querySelector('.mobile-menu');
+  if (toggle && mobileMenu) {
+    toggle.addEventListener('click', function () {
+      mobileMenu.classList.toggle('open');
+    });
+    mobileMenu.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        mobileMenu.classList.remove('open');
+      });
+    });
+  }
+
   var buttons = document.querySelectorAll('.filter-btn');
   var cards = document.querySelectorAll('.case-card');
 
