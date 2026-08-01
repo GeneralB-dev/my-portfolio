@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wardline — Admin Dashboard (Concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F1F4F6;
+    --panel:#FFFFFF;
+    --ink:#14213D;
+    --ink-soft:#47536B;
+    --muted:#8592A6;
+    --brand:#2A3D66;
+    --brand-soft:#E7ECF3;
+    --amber:#E2A33B;
+    --amber-soft:#FBF0DC;
+    --success:#3F8F6D;
+    --success-soft:#E3F1EC;
+    --danger:#C1503F;
+    --danger-soft:#FBEAE7;
+    --line:#DCE1E8;
+    --radius:8px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--ink); font-family:'Inter', sans-serif; font-size:14px;}
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; font-weight:600; color:var(--ink);}
+  .mono{font-family:'JetBrains Mono', monospace;}
+
+  .shell{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{width:220px; background:var(--brand); color:#fff; padding:28px 20px; display:flex; flex-direction:column; gap:28px; flex-shrink:0;}
+  .logo{font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:19px; letter-spacing:-0.02em;}
+  .logo span{color:var(--amber);}
+  .nav{display:flex; flex-direction:column; gap:4px;}
+  .nav button{
+    all:unset; cursor:pointer; padding:10px 12px; border-radius:6px; font-size:13.5px; color:rgba(255,255,255,0.65);
+    display:flex; align-items:center; gap:10px; transition:background .15s, color .15s;
+  }
+  .nav button:hover{background:rgba(255,255,255,0.08); color:#fff;}
+  .nav button.active{background:rgba(255,255,255,0.14); color:#fff; font-weight:500;}
+  .nav-dot{width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.5;}
+  .sidebar-foot{margin-top:auto; font-size:11.5px; color:rgba(255,255,255,0.45); line-height:1.5;}
+
+  /* Main */
+  .main{flex:1; padding:32px 40px; max-width:1180px;}
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:28px;}
+  .topbar h1{font-size:24px;}
+  .topbar p{color:var(--muted); font-size:13px; margin-top:2px;}
+  .user-chip{display:flex; align-items:center; gap:10px; background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:6px 14px 6px 6px;}
+  .user-avatar{width:26px; height:26px; border-radius:50%; background:var(--amber); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; color:#fff;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* KPI cards */
+  .kpi-row{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px;}
+  .kpi{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px;}
+  .kpi .label{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.03em; margin-bottom:8px;}
+  .kpi .value{font-family:'Space Grotesk', sans-serif; font-size:26px; font-weight:600;}
+  .kpi .delta{font-size:12px; margin-top:4px;}
+  .delta.up{color:var(--success);}
+  .delta.warn{color:var(--amber);}
+  .delta.down{color:var(--danger);}
+
+  .panel{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:22px; margin-bottom:20px;}
+  .panel-head{display:flex; align-items:center; justify-content:between; justify-content:space-between; margin-bottom:16px;}
+  .panel-head h3{font-size:15px;}
+
+  /* Shift coverage timeline (signature element) */
+  .shift-row{display:flex; align-items:center; gap:14px; padding:9px 0; border-top:1px solid var(--line);}
+  .shift-row:first-of-type{border-top:none;}
+  .shift-name{width:120px; font-size:12.5px; font-weight:500; flex-shrink:0;}
+  .shift-track{flex:1; height:18px; background:#EEF1F4; border-radius:4px; position:relative; overflow:hidden;}
+  .shift-bar{position:absolute; top:0; bottom:0; border-radius:4px;}
+  .shift-time{width:96px; text-align:right; font-size:11px; color:var(--muted); flex-shrink:0;}
+  .shift-legend{display:flex; gap:16px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted);}
+  .legend-dot{width:8px; height:8px; border-radius:2px;}
+
+  /* Activity feed */
+  .activity{display:flex; gap:12px; padding:11px 0; border-top:1px solid var(--line); font-size:13px;}
+  .activity:first-of-type{border-top:none;}
+  .activity-dot{width:6px; height:6px; border-radius:50%; background:var(--brand); margin-top:6px; flex-shrink:0;}
+  .activity time{color:var(--muted); font-size:11.5px;}
+
+  /* Tables */
+  table{width:100%; border-collapse:collapse;}
+  th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.03em; color:var(--muted); padding:0 10px 10px; font-weight:500;}
+  td{padding:12px 10px; border-top:1px solid var(--line); font-size:13px;}
+  tr:hover td{background:#FAFBFC;}
+  .cell-name{font-weight:500;}
+  .cell-id{color:var(--muted); font-size:11.5px;}
+
+  .pill{display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:100px; font-size:11.5px; font-weight:500;}
+  .pill-dot{width:6px; height:6px; border-radius:50%;}
+  .pill.paid{background:var(--success-soft); color:var(--success);}
+  .pill.paid .pill-dot{background:var(--success);}
+  .pill.pending{background:var(--amber-soft); color:#96721F;}
+  .pill.pending .pill-dot{background:var(--amber);}
+  .pill.overdue{background:var(--danger-soft); color:var(--danger);}
+  .pill.overdue .pill-dot{background:var(--danger);}
+  .pill.compliant{background:var(--success-soft); color:var(--success);}
+  .pill.compliant .pill-dot{background:var(--success);}
+
+  .btn-mini{
+    all:unset; cursor:pointer; font-size:12px; font-weight:500; padding:6px 12px; border-radius:6px;
+    background:var(--brand); color:#fff;
+  }
+  .btn-mini:hover{background:#1F2E4D;}
+  .btn-mini.ghost{background:transparent; border:1px solid var(--line); color:var(--ink-soft);}
+  .btn-mini.ghost:hover{border-color:var(--brand); color:var(--brand);}
+
+  .filter-chips{display:flex; gap:8px; margin-bottom:16px;}
+  .chip{
+    all:unset; cursor:pointer; font-size:12px; padding:6px 14px; border-radius:100px; border:1px solid var(--line); color:var(--ink-soft);
+  }
+  .chip.active{background:var(--brand); color:#fff; border-color:var(--brand);}
+</style>
+</head>
+<body>
+
+<a href="../index.html" style="position:fixed; top:16px; right:16px; z-index:100; background:#14213D; color:#fff; font-family:'Inter',sans-serif; font-size:12.5px; padding:8px 14px; border-radius:100px; text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15);">← Back to portfolio</a>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="logo">Ward<span>line</span></div>
+    <nav class="nav">
+      <button class="active" data-view="overview"><span class="nav-dot"></span> Overview</button>
+      <button data-view="payroll"><span class="nav-dot"></span> Payroll</button>
+      <button data-view="compliance"><span class="nav-dot"></span> Compliance</button>
+    </nav>
+    <div class="sidebar-foot">Concept product<br>Designed by Uwem Barnabas</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div class="view active" id="overview">
+      <div class="topbar">
+        <div>
+          <h1>Good morning, Uwem</h1>
+          <p>The Rock Hospital · Tuesday, 4 August</p>
+        </div>
+        <div class="user-chip">
+          <div class="user-avatar">UB</div>
+          <span style="font-size:13px; font-weight:500;">Admin Officer</span>
+        </div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="label">Staff on duty</div>
+          <div class="value">18<span style="font-size:14px; color:var(--muted); font-weight:400;"> / 22</span></div>
+          <div class="delta up">↑ 2 vs. yesterday</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Payroll pending</div>
+          <div class="value mono">₦2.4M</div>
+          <div class="delta warn">Due in 3 days</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Compliance docs</div>
+          <div class="value">4<span style="font-size:14px; color:var(--muted); font-weight:400;"> overdue</span></div>
+          <div class="delta down">↑ 1 since last week</div>
+        </div>
+        <div class="kpi">
+          <div class="label">HMO claims open</div>
+          <div class="value">11</div>
+          <div class="delta up">3 resolved today</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Today's shift coverage</h3></div>
+        <div id="shift-timeline"></div>
+        <div class="shift-legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--brand);"></span> Nursing</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--amber);"></span> Front desk</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#8592A6;"></span> Administrative</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Recent activity</h3></div>
+        <div class="activity"><span class="activity-dot"></span><div>Payroll batch for <strong>Nursing — Ward B</strong> marked ready for review <time>· 24 min ago</time></div></div>
+        <div class="activity"><span class="activity-dot"></span><div><strong>HMO claim #2291</strong> approved by AXA Mansard <time>· 1h ago</time></div></div>
+        <div class="activity"><span class="activity-dot"></span><div>Compliance document for <strong>T. Adeyemi</strong> flagged overdue <time>· 3h ago</time></div></div>
+      </div>
+    </div>
+
+    <!-- PAYROLL -->
+    <div class="view" id="payroll">
+      <div class="topbar">
+        <div><h1>Payroll</h1><p>August 2026 pay cycle · 22 staff</p></div>
+        <button class="btn-mini">Run payroll batch</button>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Staff</th><th>Role</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody id="payroll-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COMPLIANCE -->
+    <div class="view" id="compliance">
+      <div class="topbar">
+        <div><h1>Compliance &amp; HMO documents</h1><p>Tracking 22 staff records</p></div>
+      </div>
+      <div class="filter-chips">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="compliant">Compliant</button>
+        <button class="chip" data-filter="pending">Pending</button>
+        <button class="chip" data-filter="overdue">Overdue</button>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Staff</th><th>Document</th><th>Due</th><th>Status</th></tr></thead>
+          <tbody id="compliance-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  // Nav switching
+  document.querySelectorAll('.nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.view).classList.add('active');
+    });
+  });
+
+  // Shift timeline (signature element) — render bars across a 24h track
+  const shifts = [
+    { name: 'Ward A — Nursing', start: 6, end: 18, type: 'nursing' },
+    { name: 'Ward B — Nursing', start: 8, end: 20, type: 'nursing' },
+    { name: 'Front Desk', start: 7, end: 15, type: 'front' },
+    { name: 'Front Desk (PM)', start: 15, end: 22, type: 'front' },
+    { name: 'Admin Office', start: 8, end: 17, type: 'admin' },
+  ];
+  const colors = { nursing: '#2A3D66', front: '#E2A33B', admin: '#8592A6' };
+  const timeline = document.getElementById('shift-timeline');
+  shifts.forEach(s => {
+    const row = document.createElement('div');
+    row.className = 'shift-row';
+    const leftPct = (s.start / 24) * 100;
+    const widthPct = ((s.end - s.start) / 24) * 100;
+    row.innerHTML = `
+      <div class="shift-name">${s.name}</div>
+      <div class="shift-track"><div class="shift-bar" style="left:${leftPct}%; width:${widthPct}%; background:${colors[s.type]};"></div></div>
+      <div class="shift-time mono">${s.start}:00–${s.end}:00</div>
+    `;
+    timeline.appendChild(row);
+  });
+
+  // Payroll table
+  const payroll = [
+    { name: 'Ifeoma Chukwu', id: 'RH-014', role: 'Senior Nurse', amount: '₦185,000', status: 'paid' },
+    { name: 'Tunde Adeyemi', id: 'RH-022', role: 'Front Desk', amount: '₦95,000', status: 'pending' },
+    { name: 'Grace Okafor', id: 'RH-009', role: 'Ward Nurse', amount: '₦160,000', status: 'pending' },
+    { name: 'Musa Bello', id: 'RH-031', role: 'Admin Assistant', amount: '₦110,000', status: 'overdue' },
+    { name: 'Chidinma Eze', id: 'RH-017', role: 'Ward Nurse', amount: '₦160,000', status: 'paid' },
+  ];
+  const payrollBody = document.getElementById('payroll-table');
+  payroll.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="cell-name">${p.name}</div><div class="cell-id mono">${p.id}</div></td>
+      <td>${p.role}</td>
+      <td class="mono">${p.amount}</td>
+      <td><span class="pill ${p.status}"><span class="pill-dot"></span>${p.status.charAt(0).toUpperCase() + p.status.slice(1)}</span></td>
+      <td><button class="btn-mini ghost">View</button></td>
+    `;
+    payrollBody.appendChild(tr);
+  });
+
+  // Compliance table
+  const compliance = [
+    { name: 'Ifeoma Chukwu', doc: 'HMO Renewal — AXA Mansard', due: 'Aug 12', status: 'compliant' },
+    { name: 'Tunde Adeyemi', doc: 'Annual Health Screening', due: 'Aug 02', status: 'overdue' },
+    { name: 'Grace Okafor', doc: 'Certification Renewal', due: 'Aug 20', status: 'pending' },
+    { name: 'Musa Bello', doc: 'HMO Documentation', due: 'Jul 29', status: 'overdue' },
+    { name: 'Chidinma Eze', doc: 'Annual Health Screening', due: 'Sep 04', status: 'compliant' },
+  ];
+  const complianceBody = document.getElementById('compliance-table');
+  function renderCompliance(filter) {
+    complianceBody.innerHTML = '';
+    compliance
+      .filter(c => filter === 'all' || c.status === filter)
+      .forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="cell-name">${c.name}</td>
+          <td>${c.doc}</td>
+          <td class="mono">${c.due}</td>
+          <td><span class="pill ${c.status}"><span class="pill-dot"></span>${c.status.charAt(0).toUpperCase() + c.status.slice(1)}</span></td>
+        `;
+        complianceBody.appendChild(tr);
+      });
+  }
+  renderCompliance('all');
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      renderCompliance(chip.dataset.filter);
+    });
+  });
+</script>
+
+</body>
+</html>
