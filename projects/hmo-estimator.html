@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HMO claim cost estimator — Uwem Barnabas</title>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  .demo-frame{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:28px;}
+  .field-row{margin-bottom:20px;}
+  .field-row label{font-family:'IBM Plex Mono', monospace; font-size:11.5px; text-transform:uppercase; letter-spacing:0.03em; color:var(--muted); margin-bottom:8px; display:block;}
+  .select-input{
+    width:100%; font-family:'IBM Plex Sans', sans-serif; font-size:14.5px; padding:11px 12px;
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); color:var(--ink);
+    appearance:none; -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B8579' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat; background-position:right 12px center; background-size:16px;
+  }
+  .split-bar{display:flex; height:14px; border-radius:100px; overflow:hidden; margin:18px 0 10px; background:var(--line);}
+  .split-hmo{background:var(--accent); height:100%; transition:width .3s ease;}
+  .split-patient{background:#F0997B; height:100%; transition:width .3s ease;}
+  .split-legend{display:flex; justify-content:space-between; font-size:12.5px; color:var(--ink-soft);}
+  .legend-dot{display:inline-block; width:8px; height:8px; border-radius:2px; margin-right:6px;}
+  .result-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px;}
+  .disclaimer{font-size:12px; color:var(--muted); margin-top:20px; padding-top:16px; border-top:1px solid var(--line);}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="wrap">
+    <a href="../index.html" class="brand">Uwem Barnabas</a>
+    <div class="nav-links">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact">Contact</a>
+    </div>
+    <a href="../resume.pdf" class="btn btn-ghost" download>Resume</a>
+    <button class="nav-toggle" aria-label="Open menu"><span></span><span></span><span></span></button>
+  </nav>
+  <div class="mobile-menu">
+    <a href="../index.html#work">Work</a>
+    <a href="../index.html#about">About</a>
+    <a href="../index.html#contact">Contact</a>
+    <a href="../resume.pdf" download>Resume</a>
+  </div>
+</header>
+
+<main>
+  <section class="cs-hero">
+    <div class="wrap">
+      <a href="../index.html#work" class="back-link">← Back to work</a>
+      <span class="mono">Web design — interactive</span>
+      <h1 style="font-size:40px; margin-top:14px; max-width:680px;">HMO claim cost estimator</h1>
+      <p style="color:var(--ink-soft); max-width:560px; margin-top:16px; font-size:16px;">A working tool that estimates how a medical bill splits between an HMO and a patient — built on the same claims logic I worked with directly at The Rock Hospital.</p>
+
+      <div class="cs-meta">
+        <div><span class="mono">Role</span><p>Designer &amp; builder</p></div>
+        <div><span class="mono">Built with</span><p>HTML, CSS, JavaScript</p></div>
+        <div><span class="mono">Status</span><p>Live, interactive demo</p></div>
+        <div><span class="mono">Grounded in</span><p>Real HMO billing work</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="placeholder-note">Figures here are illustrative estimates for demonstration, not real HMO or hospital pricing. The interaction and logic are real; the numbers are simplified for the demo.</div>
+
+      <div class="demo-frame">
+        <div class="field-row">
+          <label for="service">Service type</label>
+          <select id="service" class="select-input">
+            <option value="consult" data-cost="8000">General consultation — ₦8,000</option>
+            <option value="lab" data-cost="15000">Lab test — ₦15,000</option>
+            <option value="xray" data-cost="25000">X-ray — ₦25,000</option>
+            <option value="minor-surgery" data-cost="180000">Minor surgery — ₦180,000</option>
+            <option value="maternity" data-cost="320000">Maternity delivery — ₦320,000</option>
+            <option value="dental" data-cost="20000">Dental procedure — ₦20,000</option>
+          </select>
+        </div>
+
+        <div class="field-row">
+          <label for="plan">HMO plan tier</label>
+          <select id="plan" class="select-input">
+            <option value="basic" data-coverage="0.6" data-cap="100000">Basic — 60% coverage, ₦100,000 cap</option>
+            <option value="standard" data-coverage="0.8" data-cap="250000">Standard — 80% coverage, ₦250,000 cap</option>
+            <option value="premium" data-coverage="0.95" data-cap="600000">Premium — 95% coverage, ₦600,000 cap</option>
+          </select>
+        </div>
+
+        <div class="split-bar">
+          <div class="split-hmo" id="bar-hmo" style="width:60%;"></div>
+          <div class="split-patient" id="bar-patient" style="width:40%;"></div>
+        </div>
+        <div class="split-legend">
+          <span><span class="legend-dot" style="background:var(--accent);"></span>HMO covers</span>
+          <span><span class="legend-dot" style="background:#F0997B;"></span>Patient pays</span>
+        </div>
+
+        <div class="result-row">
+          <div class="stat-card"><div class="num" id="hmo-amount">₦0</div><div class="label">HMO pays</div></div>
+          <div class="stat-card"><div class="num" id="patient-amount">₦0</div><div class="label">Patient pays</div></div>
+        </div>
+
+        <div class="disclaimer">Estimate only — actual coverage depends on the specific HMO contract, provider tier, and pre-authorization terms.</div>
+      </div>
+
+      <div class="cs-block" style="margin-top:48px;">
+        <h2>Why I built this</h2>
+        <p>At The Rock Hospital, one of the most common friction points was patients not understanding what their HMO would actually cover before a procedure — leading to billing disputes after the fact. This tool models that same coverage-vs-cap logic I worked with directly: a plan covers a percentage of the bill, up to a fixed cap, and the patient covers the rest.</p>
+        <p>The cap matters as much as the percentage — a plan with 95% coverage but a low cap can leave a patient with a bigger bill than a plan with 80% coverage and a higher cap, which is exactly the kind of thing this tool makes visible instantly instead of requiring a manual calculation.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>© 2026 Uwem Barnabas</p>
+    <a href="../index.html#work" class="mono">More work →</a>
+  </div>
+</footer>
+
+<script>
+  const serviceSelect = document.getElementById('service');
+  const planSelect = document.getElementById('plan');
+  const barHmo = document.getElementById('bar-hmo');
+  const barPatient = document.getElementById('bar-patient');
+  const hmoAmount = document.getElementById('hmo-amount');
+  const patientAmount = document.getElementById('patient-amount');
+
+  function formatNaira(n) {
+    return '₦' + Math.round(n).toLocaleString('en-NG');
+  }
+
+  function calculate() {
+    const cost = parseFloat(serviceSelect.selectedOptions[0].dataset.cost);
+    const coverage = parseFloat(planSelect.selectedOptions[0].dataset.coverage);
+    const cap = parseFloat(planSelect.selectedOptions[0].dataset.cap);
+
+    let hmoPays = Math.min(cost * coverage, cap);
+    let patientPays = cost - hmoPays;
+    if (patientPays < 0) patientPays = 0;
+
+    const hmoPct = (hmoPays / cost) * 100;
+    const patientPct = 100 - hmoPct;
+
+    barHmo.style.width = hmoPct + '%';
+    barPatient.style.width = patientPct + '%';
+    hmoAmount.textContent = formatNaira(hmoPays);
+    patientAmount.textContent = formatNaira(patientPays);
+  }
+
+  serviceSelect.addEventListener('change', calculate);
+  planSelect.addEventListener('change', calculate);
+  calculate();
+</script>
+
+</body>
+</html>
